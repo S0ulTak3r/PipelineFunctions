@@ -92,7 +92,7 @@ def TransferFile(String server, String fileLocation, String sshkey)
     }
 }
 
-def clone(String gitUrl)
+def clonegit(String gitUrl)
 {
     try
     {
