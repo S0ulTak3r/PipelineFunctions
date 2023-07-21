@@ -85,6 +85,24 @@ def BuildAndPush(String project, String location)
 }
 
 
+def loginDockerHub()
+{
+    try
+    {
+        echo "Logging into DockerHub..."
+        withCredentials([usernamePassword(credentialsId: 'DockerLogin', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) 
+        {
+            sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
+        }
+
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to login to DockerHub"
+    }
+}
 // This is the important part. It makes the functions accessible.
 return this
 
