@@ -89,6 +89,7 @@ def loginDockerHub()
 {
     try
     {
+        //MAKE SURE TO ADD CREDENTIALS TO JENKINS
         echo "Logging into DockerHub..."
         withCredentials([usernamePassword(credentialsId: 'DockerLogin', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) 
         {
