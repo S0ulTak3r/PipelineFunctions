@@ -41,5 +41,19 @@ def checkChanges()
     }
 }
 
+def cleanupWorkspace()
+{
+    try
+    {
+        sh 'rm -rf *'
+    }
+    catch (Exception e) 
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed To Cleanup Workspace"
+    }
+}
+
 // This is the important part. It makes the functions accessible.
 return this

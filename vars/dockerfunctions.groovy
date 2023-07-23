@@ -103,6 +103,22 @@ def loginDockerHub()
         error "Failed to login to DockerHub"
     }
 }
+
+
+def deleteImageVersion(String image)
+{
+    try 
+    {
+        echo "attempting Cleanup"
+        sh "docker images | grep -w '${image}' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi ${image}:{}"
+    } 
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to cleanup"
+    }
+}
 // This is the important part. It makes the functions accessible.
 return this
 
