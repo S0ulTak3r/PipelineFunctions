@@ -36,7 +36,6 @@ def cleanDockerContainers(String instanceip, String sshkey)
     {
         // function body
         echo "Cleaning Docker Containers..."
-        sh "docker image prune -f"
         sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker container prune --force'"
     } 
     catch (Exception e) 
@@ -112,6 +111,7 @@ def deleteImageVersion(String image)
     try 
     {
         echo "attempting Cleanup"
+        sh "docker image prune -f"
         sh "docker images | grep -w '${image}' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi ${image}:{}"
     } 
     catch (Exception e)
