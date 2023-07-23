@@ -36,6 +36,7 @@ def cleanDockerContainers(String instanceip, String sshkey)
     {
         // function body
         echo "Cleaning Docker Containers..."
+        sh "docker image prune -f"
         sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker container prune --force'"
     } 
     catch (Exception e) 
