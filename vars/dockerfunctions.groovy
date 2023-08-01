@@ -37,6 +37,7 @@ def cleanDockerContainers(String instanceip, String sshkey)
         // function body
         echo "Cleaning Docker Containers..."
         sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker container prune --force'"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker image prune --force'"
     } 
     catch (Exception e) 
     {
@@ -46,6 +47,7 @@ def cleanDockerContainers(String instanceip, String sshkey)
     }
 
 }
+
 
 def StopDockerCompose(String instanceip, String sshkey)
 {
