@@ -16,7 +16,7 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
         sh "bash ./scripts/versionBump.sh ${changeType}"
 
         // Extract the new version from Chart.yaml
-        def newVersion = sh(script: "grep 'version:' ${folder}/mynewchart/Chart.yaml | awk '{print $2}'", returnStdout: true).trim()
+        def newVersion = sh(script: "grep 'version:' ${folder}/mynewchart/Chart.yaml | awk '{print \$2}'", returnStdout: true).trim()
 
         // Predict the packaged chart name
         def packagedChartName = "myproject-${newVersion}.tgz"
