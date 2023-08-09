@@ -11,8 +11,8 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
             changeType = 'major'
         } else if (chartChanges.contains("templates/")) {
             changeType = 'minor'
-        }
-
+        } 
+        
         // Bump version
         sh "bash ./scripts/versionBump.sh ${changeType}"
 
