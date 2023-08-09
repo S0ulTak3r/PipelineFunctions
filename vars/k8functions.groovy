@@ -13,6 +13,52 @@ def rollout(String deployment)
     }
 }
 
+def uninstallHelmRelease(String releaseName)
+{
+    try
+    {
+        echo "Uninstalling Helm release: ${releaseName}"
+        sh "helm uninstall ${releaseName}"
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to uninstall Helm release: ${releaseName}"
+    }
+}
+
+def installHelmRelease(String releaseName, String chartPath)
+{
+    try
+    {
+        echo "Installing Helm release: ${releaseName} using chart: ${chartPath}"
+        sh "helm install ${releaseName} ${chartPath}"
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to install Helm release: ${releaseName}"
+    }
+}
+
+def upgradeHelmRelease(String releaseName, String chartPath)
+{
+    try
+    {
+        echo "Upgrading Helm release: ${releaseName} using chart: ${chartPath}"
+        sh "helm upgrade ${releaseName} ${chartPath}"
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to upgrade Helm release: ${releaseName}"
+    }
+}
+
+
 def deleteWithFile(String filepath)
 {
     try
