@@ -1,6 +1,7 @@
 def packageHelmChart(String folder, String bucket, String bucketFolder) {
     // Check for changes in the mynewchart directory
-    def chartChanges = sh(script: "git diff --name-only HEAD~1 HEAD | grep mynewchart", returnStdout: true).trim()
+    def chartChanges = sh(script: "git diff --name-only HEAD~1 HEAD | grep mynewchart || true", returnStdout: true).trim()
+
     
     if (chartChanges) {
         // Determine the type of change
