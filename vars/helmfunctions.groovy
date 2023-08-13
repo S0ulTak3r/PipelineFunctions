@@ -39,7 +39,8 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
         sh "gsutil cp ${folder}/${packagedChartName} gs://${bucket}/${bucketFolder}/"
 
         // Cleanup
-        sh "rm -rf ${folder}/unpackedChart ${folder}/myproject*.tgz"
+        sh "rm -rf ${folder}/unpackedChart"
+        //sh "rm -rf ${folder}/unpackedChart ${folder}/myproject*.tgz"
     }
 }
 
