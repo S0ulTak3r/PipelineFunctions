@@ -11,6 +11,9 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
         sh "mkdir -p ${folder}/unpackedChart"
         sh "tar -xzvf ${folder}/myproject*.tgz -C ${folder}/unpackedChart"
 
+        // Copy changes from static mynewchart to the unpacked version, excluding Chart.yaml
+        sh "rsync -av --exclude='Chart.yaml' ${folder}/mynewchart/ ${folder}/unpackedChart/myproject/"
+
         // Determine the type of change
         def changeType = 'patch'  // default to patch
 
@@ -39,6 +42,10 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
         sh "rm -rf ${folder}/unpackedChart ${folder}/myproject*.tgz"
     }
 }
+
+// This is the important part. It makes the functions accessible.
+return this
+
 
 
 // This is the important part. It makes the functions accessible.
