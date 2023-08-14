@@ -1,17 +1,15 @@
-
 def TransferFile(String server, String fileLocation, String sshkey)
 {
     try
     {
-        echo "Initiating file transfer..."
-        echo "Source File: ${fileLocation}"
-        echo "Destination Server: ${server}"
+        echo "Initiating SCP transfer to server: ${server}..."
         sh "scp -o StrictHostKeyChecking=no -i ${sshkey} ${fileLocation} ec2-user@${server}:."
-        echo "File transfer completed successfully."
     }
     catch (Exception e)
     {
-        error "Failed to transfer file to ${server}. Error: ${e.getMessage()}"
+        echo "[ERROR]: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "SCP Transfer failed for server: ${server}. Refer to logs for more details."
     }
 }
 
