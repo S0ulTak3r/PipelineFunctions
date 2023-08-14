@@ -1,128 +1,58 @@
+
+def executeDockerCommandOnInstance(String command, String instanceip, String sshkey, String description) 
+{
+    try
+    {
+        echo "Executing Docker command for: ${description} on instance: ${instanceip}..."
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} '${command}'"
+    }
+    catch (Exception e)
+    {
+        error "Failed to execute Docker command for ${description} on instance: ${instanceip}. Error: ${e.getMessage()}"
+    }
+}
+
 def PullDockerCompose(String instanceip, String sshkey)
 {
-    try 
-    {
-        // function body
-        echo "Pulling Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose pull'"
-    } 
-    catch (Exception e) 
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Pull Images on: ${instanceip}"
-    }
+    executeDockerCommandOnInstance("docker-compose pull", instanceip, sshkey, "Pulling Docker images using Docker Compose")
 }
 
 def StartDockerCompose(String instanceip, String sshkey)
 {
-    try 
-    {
-        // function body
-        echo "Running Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose up --no-build -d'"
-    } 
-    catch (Exception e) 
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Run Containers On: ${instanceip}"
-    }
+    executeDockerCommandOnInstance("docker-compose up --no-build -d", instanceip, sshkey, "Starting Docker containers using Docker Compose")
 }
 
 def cleanDockerContainers(String instanceip, String sshkey)
 {
-    try 
-    {
-        // function body
-        echo "Cleaning Docker Containers..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker container prune --force'"
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'sudo docker image prune --force'"
-    } 
-    catch (Exception e) 
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Clean Containers On: ${instanceip}"
-    }
-
+    executeDockerCommandOnInstance("sudo docker container prune --force", instanceip, sshkey, "Cleaning Docker containers")
+    executeDockerCommandOnInstance("sudo docker image prune --force", instanceip, sshkey, "Cleaning Docker images")
 }
-
 
 def StopDockerCompose(String instanceip, String sshkey)
 {
-    try 
-    {
-        echo "Stopping Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose down --no-build'"
-    } 
-    catch (Exception e) 
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Stop Docker-Compose on: ${instanceip}"
-    }
+    executeDockerCommandOnInstance("docker-compose down --no-build", instanceip, sshkey, "Stopping Docker containers using Docker Compose")
 }
-
-
 
 def BuildAndPush(String project, String location)
 {
     try
     {
-        dir("${location}") 
+        dir("\${location}") 
         {
             // Stage building
-            echo "Building ${project} Docker Image..."
-            sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
-            sh "docker push --all-tags ${project}"
+            echo "Building Docker image for project: ${project}..."
+            sh "docker build -t ${project} ."
+            
+            // Stage pushing
+            echo "Pushing Docker image for project: ${project} to Docker registry..."
+            sh "docker push ${project}"
         }
-    }
-    catch  (Exception e)
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed to build and push ${project}"
-    }
-}
-
-
-def loginDockerHub()
-{
-    try
-    {
-        //MAKE SURE TO ADD CREDENTIALS TO JENKINS
-        echo "Logging into DockerHub..."
-        withCredentials([usernamePassword(credentialsId: 'DockerLogin', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) 
-        {
-            sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-        }
-
     }
     catch (Exception e)
     {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed to login to DockerHub"
+        error "Failed to build and push Docker image for project: ${project}. Error: ${e.getMessage()}"
     }
 }
 
-
-def deleteImageVersion(String image)
-{
-    try 
-    {
-        echo "attempting Cleanup"
-        sh "docker image prune -f"
-        sh "docker images | grep -w '${image}' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi ${image}:{}"
-    } 
-    catch (Exception e)
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed to cleanup"
-    }
-}
 // This is the important part. It makes the functions accessible.
 return this
-

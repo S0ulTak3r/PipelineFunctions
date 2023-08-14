@@ -4,41 +4,43 @@ def GetInstanceDetails()
     {
         echo "Getting Instance Details..."
 
-        def instanceTestId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
-        def instanceProdId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+        def testInstanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+        def prodInstanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
                         
-        if(instanceTestId)
+        if(testInstanceId)
         {
             //Test Not Running
-                sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceTestId}")
-                sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceTestId}")
+                echo "Starting stopped EC2 instances..."
+                sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${testInstanceId}")
+                sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${testInstanceId}")
         }
         else
         {
             //Gather Id with Running state
-            instanceTestId= sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+            testInstanceId= sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
         }
-        def publicTestIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceTestId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
-        env.instanceTestId = instanceTestId
+        def publicTestIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${testInstanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+        env.testInstanceId = testInstanceId
         env.publicTestIp = publicTestIp
 
 
-        if(instanceProdId)
+        if(prodInstanceId)
         {
             //prod not running
-            sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceProdId}")
-            sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceProdId}")
+            sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${prodInstanceId}")
+            sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${prodInstanceId}")
         }
         else
         {
             //Gather Id with Running state
-            instanceProdId= sh (script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+            prodInstanceId= sh (script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
         }
-        def publicProdIp =sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceProdId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim() 
-        env.instanceProdId=instanceProdId
+        def publicProdIp =sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${prodInstanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim() 
+        env.prodInstanceId=prodInstanceId
         env.publicProdIp=publicProdIp
     }
-    catch (Exception e)
+    catch (Exception e) {
+    error "Failed to retrieve or start EC2 instances. Error: ${e.getMessage()}"
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
@@ -56,7 +58,8 @@ def closeInstance(String instanceid)
         sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${instanceid}"
         sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${instanceid}"
     }
-    catch (Exception e)
+    catch (Exception e) {
+    error "Failed to retrieve or start EC2 instances. Error: ${e.getMessage()}"
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
@@ -73,7 +76,8 @@ def startInstance(String instanceid)
         sh "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceid}"
         sh "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceid}"
     }
-    catch (Exception e)
+    catch (Exception e) {
+    error "Failed to retrieve or start EC2 instances. Error: ${e.getMessage()}"
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'

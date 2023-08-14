@@ -1,15 +1,17 @@
+
 def TransferFile(String server, String fileLocation, String sshkey)
 {
     try
     {
-        echo "Transferring File To: ${server}..."
+        echo "Initiating file transfer..."
+        echo "Source File: ${fileLocation}"
+        echo "Destination Server: ${server}"
         sh "scp -o StrictHostKeyChecking=no -i ${sshkey} ${fileLocation} ec2-user@${server}:."
+        echo "File transfer completed successfully."
     }
     catch (Exception e)
     {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Transfer File To ${server}"
+        error "Failed to transfer file to ${server}. Error: ${e.getMessage()}"
     }
 }
 

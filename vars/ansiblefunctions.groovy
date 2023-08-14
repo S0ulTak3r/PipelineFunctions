@@ -5,6 +5,7 @@ def installDependenciesSystemLvl(String ANSIBLEFOLDER, String playbook)
         dir("${ANSIBLEFOLDER}")
         {
             echo "installing Dependencies..."
+            echo "Executing Ansible playbook: ${playbook}..."
             sh "ansible-playbook ${playbook}"
         }
     }
@@ -13,7 +14,7 @@ def installDependenciesSystemLvl(String ANSIBLEFOLDER, String playbook)
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
-        error "Failed To Install Dependencies System Level"
+        error "Failed to install dependencies using playbook: ${playbook}. Error: ${e.getMessage()}"
     }
 }
 
@@ -31,7 +32,7 @@ def installDockerRemote(String ANSIBLEFOLDER , String playbook)
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
-        error "Failed To Install Docker"
+        error "Failed to install Docker using playbook: ${playbook}. Error: ${e.getMessage()}"
     }
 }
 

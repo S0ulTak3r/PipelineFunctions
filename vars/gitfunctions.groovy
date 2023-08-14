@@ -1,20 +1,16 @@
+
 def clonegit(String gitUrl)
 {
     try
     {
-        //clonning from github to workspace
-        echo 'Cloning Repository...'
+        echo "Cloning repository from URL: ${gitUrl}..."
         sh "git clone ${gitUrl}"
-        sh 'ls'
     }
     catch (Exception e)
     {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Clone Repository"
+        error "Failed to clone repository from URL ${gitUrl}. Error: ${e.getMessage()}"
     }
 }
-
 
 // This is the important part. It makes the functions accessible.
 return this

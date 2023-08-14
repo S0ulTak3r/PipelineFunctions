@@ -12,14 +12,7 @@ def checkChanges()
         } 
         else 
         {
-            def modifiedFiles = []
-            for(changeSet in changeSets) 
-            {
-                for(item in changeSet) 
-                {
-                    modifiedFiles += item.getAffectedPaths()
-                }
-            }
+            def modifiedFiles = changeSets.collectMany { it.collect { item -> item.getAffectedPaths() } }.flatten()
             modifiedFiles = modifiedFiles.minus('Jenkinsfile-dockercompose2')
             
             if (modifiedFiles.isEmpty()) 
@@ -33,11 +26,9 @@ def checkChanges()
             }
         }
     }
-    catch (Exception e) 
+    catch (Exception e)
     {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Check Changes"
+        error "Failed to check changes. Error: ${e.getMessage()}"
     }
 }
 
@@ -45,13 +36,12 @@ def cleanupWorkspace()
 {
     try
     {
+        echo "Cleaning up the workspace..."
         sh 'rm -rf *'
     }
-    catch (Exception e) 
+    catch (Exception e)
     {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Cleanup Workspace"
+        error "Failed to clean up workspace. Error: ${e.getMessage()}"
     }
 }
 

@@ -1,20 +1,32 @@
-def curlTest(String server,String port="")
+
+def executeWithRetry(Closure action, int maxRetries = 30, int waitTime = 10, String description) 
 {
-    try
+    int retries = 0
+    while (retries < maxRetries) 
     {
-        echo "testing test environment..."
-        retry(30) 
+        try 
         {
-            sleep 10 // Wait for 10 seconds between retries
-            sh "curl http://${server}:${port}"
+            action()
+            return
+        } 
+        catch (Exception e) 
+        {
+            retries++
+            if (retries >= maxRetries) 
+            {
+                error "Failed to execute action for ${description} after ${maxRetries} attempts. Error: ${e.getMessage()}"
+            }
+            sleep(waitTime)
         }
     }
-    catch (Exception e)
-    {
-        echo "Error: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed To Curl Test"
-    }
+}
+
+def curlTest(String server, String port="")
+{
+    executeWithRetry({
+        echo "Sending curl request to: http://${server}:${port}..."
+        sh "curl http://${server}:${port}"
+    }, 30, 10, "curl test to server: ${server} on port: ${port}")
 }
 
 // This is the important part. It makes the functions accessible.
