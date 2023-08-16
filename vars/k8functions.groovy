@@ -168,5 +168,13 @@ def closeProxyRemote(String remoteHost)
     }
 }
 
+def getTcpPort(String serviceName)
+{
+    echo"Retrieving TCP port..."
+    def tcpport = sh(script: "kubectl get service ${serviceName} -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+    env.KUBECTLTCPPORT = tcpport
+}
+
+
 // This is the important part. It makes the functions accessible.
 return this

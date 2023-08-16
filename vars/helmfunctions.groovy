@@ -43,6 +43,21 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
     }
 }
 
+def deployToK8s(String k8context,String packagename,String approotfolder,String environment,String deploymentName) 
+{
+    echo 'Making Sure I am in the right context...'
+    k8functions.changeContext(${k8context})
+    
+    echo "Fetching the latest chart version..."
+    def latestChart = sh(script: "ls ${approotfolder}/${packagename}*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
+    env.LATEST_CHART_PATH = latestChart
+
+    echo "Deploying application using Helm..."
+    def releaseName = ${deploymentName}
+    sh "helm upgrade --install ${releaseName} ${env.LATEST_CHART_PATH} --set global.env=${environment}"
+
+}
+
 
 
 
