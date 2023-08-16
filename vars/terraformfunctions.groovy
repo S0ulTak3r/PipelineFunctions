@@ -3,7 +3,7 @@ def terraformApply(String directory,String clustername,String zone,String projec
     try
     {
         // Change the current working directory to where your Terraform files are
-        dir(${directory}) 
+        dir("${directory}") 
         {
             // Initialize Terraform
             sh 'terraform init'
