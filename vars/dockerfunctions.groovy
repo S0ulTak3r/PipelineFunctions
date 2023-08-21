@@ -116,6 +116,9 @@ def BuildCheckAndPush(String project, String rootFolder, String applocation) {
 
 def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
     try {
+
+
+        echo "Checking for changes in ${rootFolder}/${applocation}"
         // Fetch changes using changeSets
         def changeSets = currentBuild.changeSets
         def modifiedFiles = []
