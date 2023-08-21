@@ -120,6 +120,7 @@ def BuildCheckAndPushV2(String project, String location) {
         
         for(changeSet in changeSets) {
             for(item in changeSet) {
+                echo "Changes in ${item.getAffectedPaths()}"
                 modifiedFiles += item.getAffectedPaths()
             }
         }
