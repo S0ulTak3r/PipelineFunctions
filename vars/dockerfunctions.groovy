@@ -70,6 +70,7 @@ def BuildAndPush(String project, String location)
 {
     try
     {
+        echo "Building ${project} Docker Image... in location ${location}"
         dir("${location}") 
         {
             // Stage building
