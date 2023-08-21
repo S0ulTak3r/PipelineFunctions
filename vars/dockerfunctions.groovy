@@ -131,7 +131,7 @@ def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
         def hasRelevantChanges = modifiedFiles.any { it.startsWith(applocation) }
         
         if (!hasRelevantChanges) {
-            echo "No changes detected in ${location}. Skipping build and push for ${project}."
+            echo "No changes detected in the ${rootFolder}/${applocation}. Skipping build and push for ${project}."
             return
         }
 
