@@ -86,23 +86,21 @@ def BuildAndPush(String project, String location)
     }
 }
 
-def BuildCheckAndPush(String project, String location) {
+def BuildCheckAndPush(String project, String rootFolder, String applocation) {
     try {
         // Check for changes in the given location using git diff
         def changedFiles = sh(script: "git diff --name-only HEAD~1..HEAD", returnStdout: true).trim().split("\n")
 
-        // Remove leading './' for checking purpose
-        def checkLocation = location.replaceAll("^\\./", "")
         
         // Check if any of the changed files are from the checkLocation
-        def hasRelevantChanges = changedFiles.any { it.startsWith(checkLocation) }
+        def hasRelevantChanges = changedFiles.any { it.startsWith(applocation) }
 
         if (!hasRelevantChanges) {
             echo "No changes detected in ${location}. Skipping build and push for ${project}."
             return
         }
 
-        dir("${location}") { // Using original location here
+        dir("${rootFolder}/${applocation}") { // Using original location here
             // Stage building
             echo "Building ${project} Docker Image..."
             sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
@@ -116,7 +114,7 @@ def BuildCheckAndPush(String project, String location) {
 }
 
 
-def BuildCheckAndPushV2(String project, String location) {
+def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
     try {
         // Fetch changes using changeSets
         def changeSets = currentBuild.changeSets
@@ -128,19 +126,17 @@ def BuildCheckAndPushV2(String project, String location) {
                 modifiedFiles += item.getAffectedPaths()
             }
         }
-
-        // Remove lseading './' for checking purpose
-        def checkLocation = location.replaceAll("^\\./", "")
         
         // Check for changes in the given location
-        def hasRelevantChanges = modifiedFiles.any { it.startsWith(checkLocation) }
+        def hasRelevantChanges = modifiedFiles.any { it.startsWith(applocation) }
         
         if (!hasRelevantChanges) {
             echo "No changes detected in ${location}. Skipping build and push for ${project}."
             return
         }
 
-        dir("${location}") {
+        dir("${rootFolder}/${applocation}") 
+        {
             // Stage building
             echo "Building ${project} Docker Image..."
             sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
