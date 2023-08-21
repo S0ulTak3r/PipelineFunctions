@@ -54,7 +54,7 @@ def StopDockerCompose(String instanceip, String sshkey)
     try 
     {
         echo "Stopping Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose down --no-build'"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose down'"
     } 
     catch (Exception e) 
     {
