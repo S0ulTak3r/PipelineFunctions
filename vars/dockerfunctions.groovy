@@ -73,7 +73,7 @@ def BuildAndPush(String project, String location)
         echo "Building ${project} Docker Image... in location ${location}"
         dir("${location}") 
         {
-            // Stage building
+            // Stage sbuilding
             echo "Building ${project} Docker Image..."
             sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
             sh "docker push --all-tags ${project}"
