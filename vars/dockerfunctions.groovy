@@ -129,7 +129,7 @@ def BuildCheckAndPushV2(String project, String location) {
             }
         }
 
-        // Remove leading './' for checking purpose
+        // Remove lseading './' for checking purpose
         def checkLocation = location.replaceAll("^\\./", "")
         
         // Check for changes in the given location
