@@ -3,7 +3,7 @@ def clonegit(String gitUrl)
     try
     {
         //clonning from github to workspace
-        echo 'Cloning Repository...'
+        echo 'Cloning Reposiitory...'
         sh "git clone ${gitUrl}"
         sh 'ls'
     }
