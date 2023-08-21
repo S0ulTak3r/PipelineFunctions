@@ -91,15 +91,18 @@ def BuildCheckAndPush(String project, String location) {
         // Check for changes in the given location using git diff
         def changedFiles = sh(script: "git diff --name-only HEAD~1..HEAD", returnStdout: true).trim().split("\n")
 
-        // Check if any of the changed files are from the given location
-        def hasRelevantChanges = changedFiles.any { it.startsWith(location) }
+        // Remove leading './' for checking purpose
+        def checkLocation = location.replaceAll("^\\./", "")
+        
+        // Check if any of the changed files are from the checkLocation
+        def hasRelevantChanges = changedFiles.any { it.startsWith(checkLocation) }
 
         if (!hasRelevantChanges) {
             echo "No changes detected in ${location}. Skipping build and push for ${project}."
             return
         }
 
-        dir("${location}") {
+        dir("${location}") { // Using original location here
             // Stage building
             echo "Building ${project} Docker Image..."
             sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
@@ -111,6 +114,7 @@ def BuildCheckAndPush(String project, String location) {
         error "Failed to build and push ${project}"
     }
 }
+
 
 def BuildCheckAndPushV2(String project, String location) {
     try {
@@ -124,9 +128,12 @@ def BuildCheckAndPushV2(String project, String location) {
                 modifiedFiles += item.getAffectedPaths()
             }
         }
+
+        // Remove leading './' for checking purpose
+        def checkLocation = location.replaceAll("^\\./", "")
         
         // Check for changes in the given location
-        def hasRelevantChanges = modifiedFiles.any { it.startsWith(location) }
+        def hasRelevantChanges = modifiedFiles.any { it.startsWith(checkLocation) }
         
         if (!hasRelevantChanges) {
             echo "No changes detected in ${location}. Skipping build and push for ${project}."
@@ -145,6 +152,7 @@ def BuildCheckAndPushV2(String project, String location) {
         error "Failed to build and push ${project}"
     }
 }
+
 
 
 
