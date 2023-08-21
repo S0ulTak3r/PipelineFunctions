@@ -4,7 +4,7 @@ def installDependenciesSystemLvl(String ANSIBLEFOLDER, String playbook)
     {
         dir("${ANSIBLEFOLDER}")
         {
-            echo "installing Dependencies..."
+            echo "instalsling Dependencies..."
             sh "ansible-playbook ${playbook}"
         }
     }
