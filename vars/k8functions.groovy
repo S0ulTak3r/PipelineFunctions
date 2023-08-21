@@ -9,7 +9,7 @@ def rollout(String deployment)
     {
         echo "[ERROR]: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
-        error "Kubernetes rollout restart failed for deployment: ${deployment}. Refer to logs for more details."
+        error "Kubernestes rollout restart failed for deployment: ${deployment}. Refer to logs for more details."
     }
 }
 
