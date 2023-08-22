@@ -13,7 +13,6 @@ def clonegit(String gitUrl, String branchName = 'master', String destDir = '')
         }
         
         sh gitCmd
-        sh "git log -1"
     }
     catch (Exception e)
     {
