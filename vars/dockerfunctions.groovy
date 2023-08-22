@@ -118,21 +118,9 @@ def BuildCheckAndPush(String project, String rootFolder, String applocation) {
 }
 
 
-def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
+def BuildCheckAndPushV2(String project, String rootFolder, String applocation, List modifiedFiles) {
     try {
-        echo "Checking for changes in ${rootFolder}/${applocation}"
-
-        // Fetch changes using changeSets
-        def changeSets = currentBuild.changeSets
-        def modifiedFiles = []
-        
-        for(changeSet in changeSets) {
-            for(item in changeSet) {
-                echo "Changes in ${item.getAffectedPaths()}"
-                modifiedFiles += item.getAffectedPaths()
-            }
-        }
-        
+        echo "Checking for changes in ${rootFolder}/${applocation}"        
         // Check for changes in the given location
         def hasRelevantChanges = modifiedFiles.any { it.startsWith(applocation) }
         
