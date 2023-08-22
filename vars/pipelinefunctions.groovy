@@ -1,38 +1,41 @@
-
-def checkChanges()
+def checkChanges(String jenkinsfile) 
 {
-    try
+    try 
     {
         echo "Checking for changes..."
+
         def changeSets = currentBuild.changeSets
-        if (changeSets.size() == 0)
+        if (changeSets.size() == 0) 
         {
-            println('No commits have been made. Proceeding with pipeline execution...')
+            echo 'No commits have been made. Proceeding with pipeline execution...'
             env.NO_CHANGES = "false"
         } 
         else 
         {
             def modifiedFiles = []
-            for(changeSet in changeSets) 
+            for (changeSet in changeSets) 
             {
-                for(item in changeSet) 
+                for (item in changeSet) 
                 {
                     modifiedFiles += item.getAffectedPaths()
                 }
             }
-            modifiedFiles = modifiedFiles.minus('Jenkinsfile-dockercompose2')
-            
+
+            // List of files or patterns to exclude
+            def excludedFiles = ["${jenkinsfile}"]
+            modifiedFiles = modifiedFiles.findAll { !excludedFiles.contains(it) }
+
             if (modifiedFiles.isEmpty()) 
             {
-                println('Skipping pipeline execution as the only change is to the Jenkinsfile.')
+                echo 'Skipping pipeline execution as the only changes are to excluded files.'
                 env.NO_CHANGES = "true"
-            }
-            else
+            } 
+            else 
             {
                 env.NO_CHANGES = "false"
             }
         }
-    }
+    } 
     catch (Exception e) 
     {
         echo "[ERROR]: ${e.getMessage()}"
@@ -41,14 +44,11 @@ def checkChanges()
     }
 }
 
-def cleanupWorkspace()
-{
-    try
-    {
-        sh 'rm -rf *'
-    }
-    catch (Exception e) 
-    {
+
+def cleanupWorkspace() {
+    try {
+        cleanWs()
+    } catch (Exception e) {
         echo "[ERROR]: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
         error "Failed To Cleanup Workspace"

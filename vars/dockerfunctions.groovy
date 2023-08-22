@@ -1,10 +1,10 @@
-def PullDockerCompose(String instanceip, String sshkey)
+def PullDockerCompose(String instanceip, String sshkey, String tag,String dockercomposefile)
 {
     try 
     {
         // function body
         echo "Pulling Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose pull'"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'RELEVANT_DOCKER_TAG=${tag} docker-compose -f ${dockercomposefile} pull'"
     } 
     catch (Exception e) 
     {
@@ -14,13 +14,16 @@ def PullDockerCompose(String instanceip, String sshkey)
     }
 }
 
-def StartDockerCompose(String instanceip, String sshkey)
+def StartDockerCompose(String instanceip, String sshkey, String tag,String dockercomposefile)
 {
+    
+
+
     try 
     {
         // function body
         echo "Running Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose up --no-build -d'"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'RELEVANT_DOCKER_TAG=${tag} docker-compose -f ${dockercomposefile} up --no-build -d'"
     } 
     catch (Exception e) 
     {
@@ -30,7 +33,7 @@ def StartDockerCompose(String instanceip, String sshkey)
     }
 }
 
-def cleanDockerContainers(String instanceip, String sshkey)
+def cleanDockerContainersAndImages(String instanceip, String sshkey)
 {
     try 
     {
@@ -49,12 +52,12 @@ def cleanDockerContainers(String instanceip, String sshkey)
 }
 
 
-def StopDockerCompose(String instanceip, String sshkey)
+def StopDockerCompose(String instanceip, String sshkey, String dockercomposefile)
 {
     try 
     {
         echo "Stopping Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose down'"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose -f ${dockercomposefile} down'"
     } 
     catch (Exception e) 
     {
@@ -117,9 +120,8 @@ def BuildCheckAndPush(String project, String rootFolder, String applocation) {
 
 def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
     try {
-
-
         echo "Checking for changes in ${rootFolder}/${applocation}"
+
         // Fetch changes using changeSets
         def changeSets = currentBuild.changeSets
         def modifiedFiles = []
@@ -143,8 +145,10 @@ def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
         {
             // Stage building
             echo "Building ${project} Docker Image..."
-            sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
+            def newTag = "1.${BUILD_NUMBER}"  // This is a placeholder. Later, you can implement a logic for semantic versioning here.
+            sh "docker build -t ${project}:latest -t ${project}:${newTag} ."
             sh "docker push --all-tags ${project}"
+            env.RELEVANT_DOCKER_TAG = newTag // Set the environmental variable
         }
     } catch (Exception e) {
         echo "[ERROR]: ${e.getMessage()}"
@@ -152,6 +156,7 @@ def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
         error "Failed to build and push ${project}"
     }
 }
+
 
 
 
@@ -179,19 +184,48 @@ def loginDockerHub()
 }
 
 
-def deleteImageVersion(String image)
-{
-    try 
-    {
-        echo "attempting Cleanup"
+def retainLatestImageVersionOnly(String image) {
+    try {
+        // Get all tags for the given image
+        def tags = sh(script: "docker images ${image} --format '{{.Tag}}'", returnStdout: true).trim().split('\n')
+        
+        // Sort the tags. This assumes that the tags are semver compliant (or at least lexically sortable).
+        tags.sort()
+
+        // Keep the latest tag (last one in the sorted list)
+        def latestTag = tags[-1]
+
+        for (tag in tags) {
+            if (tag != latestTag) {
+                sh "docker rmi ${image}:${tag}"
+            }
+        }
+    } catch (Exception e) {
+        echo "[ERROR]: Failed to retain only the latest image version for ${image}. Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to process image tags"
+    }
+}
+
+
+
+def pruneDockerImages() {
+    try {
         sh "docker image prune -f"
-        sh "docker images | grep -w '${image}' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi ${image}:{}"
-    } 
-    catch (Exception e)
-    {
+    } catch (Exception e) {
         echo "[ERROR]: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
-        error "Failed to cleanup"
+        error "Failed to prune Docker images"
+    }
+}
+
+def pruneDockerContainers() {
+    try {
+        sh "docker container prune -f"
+    } catch (Exception e) {
+        echo "[ERROR]: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to prune Docker containers"
     }
 }
 // This is the important part. It makes the functions accessible.
