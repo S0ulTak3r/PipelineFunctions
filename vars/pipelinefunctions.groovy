@@ -1,41 +1,38 @@
-def checkChanges(String jenkinsfile) 
+
+def checkChanges(String jenkinsfile)
 {
-    try 
+    try
     {
         echo "Checking for changes..."
-
         def changeSets = currentBuild.changeSets
-        if (changeSets.size() == 0) 
+        if (changeSets.size() == 0)
         {
-            echo 'No commits have been made. Proceeding with pipeline execution...'
+            println('No commits have been made. Proceeding with pipeline execution...')
             env.NO_CHANGES = "false"
         } 
         else 
         {
             def modifiedFiles = []
-            for (changeSet in changeSets) 
+            for(changeSet in changeSets) 
             {
-                for (item in changeSet) 
+                for(item in changeSet) 
                 {
                     modifiedFiles += item.getAffectedPaths()
                 }
             }
-
-            // List of files or patterns to exclude
-            def excludedFiles = ["${jenkinsfile}"]
-            modifiedFiles = modifiedFiles.findAll { !excludedFiles.contains(it) }
-
+            modifiedFiles = modifiedFiles.minus("${jenkinsfile}")
+            
             if (modifiedFiles.isEmpty()) 
             {
-                echo 'Skipping pipeline execution as the only changes are to excluded files.'
+                println('Skipping pipeline execution as the only change is to the Jenkinsfile.')
                 env.NO_CHANGES = "true"
-            } 
-            else 
+            }
+            else
             {
                 env.NO_CHANGES = "false"
             }
         }
-    } 
+    }
     catch (Exception e) 
     {
         echo "[ERROR]: ${e.getMessage()}"
@@ -43,7 +40,6 @@ def checkChanges(String jenkinsfile)
         error "Failed To Check Changes"
     }
 }
-
 
 def cleanupWorkspace() {
     try {
