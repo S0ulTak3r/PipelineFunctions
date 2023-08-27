@@ -1,10 +1,14 @@
-def PullDockerCompose(String instanceip, String sshkey, String tag,String dockercomposefile)
+def PullDockerCompose(String instanceip, String sshkey, String flaskTag, String dbTag, String dockercomposefile)
 {
     try 
     {
         // function body
         echo "Pulling Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'RELEVANT_DOCKER_TAG=${tag} docker-compose -f ${dockercomposefile} pull'"
+        sh """ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} '
+            export RELEVANT_DOCKER_TAGFLASK=${flaskTag}
+            export RELEVANT_DOCKER_TAGDB=${dbTag}
+            docker-compose -f ${dockercomposefile} pull'
+        """
     } 
     catch (Exception e) 
     {
@@ -14,16 +18,18 @@ def PullDockerCompose(String instanceip, String sshkey, String tag,String docker
     }
 }
 
-def StartDockerCompose(String instanceip, String sshkey, String tag,String dockercomposefile)
+
+def StartDockerCompose(String instanceip, String sshkey, String flaskTag, String dbTag, String dockercomposefile)
 {
-    
-
-
     try 
     {
         // function body
         echo "Running Docker-Compose..."
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'RELEVANT_DOCKER_TAG=${tag} docker-compose -f ${dockercomposefile} up --no-build -d'"
+        sh """ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} '
+            export RELEVANT_DOCKER_TAGFLASK=${flaskTag}
+            export RELEVANT_DOCKER_TAGDB=${dbTag}
+            docker-compose -f ${dockercomposefile} up --no-build -d'
+        """
     } 
     catch (Exception e) 
     {
@@ -32,6 +38,7 @@ def StartDockerCompose(String instanceip, String sshkey, String tag,String docke
         error "Failed To Run Containers On: ${instanceip}"
     }
 }
+
 
 def cleanDockerContainersAndImages(String instanceip, String sshkey)
 {
@@ -146,9 +153,11 @@ def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
             def newTag = "1.${BUILD_NUMBER}"  // This is a placeholder. Later, you can implement a logic for semantic versioning here.
             sh "docker build -t ${project}:latest -t ${project}:${newTag} ."
             sh "docker push --all-tags ${project}"
-            env.RELEVANT_DOCKER_TAG = newTag // Set the environmental variable
+            return newTag
         }
-    } catch (Exception e) {
+    } 
+    catch (Exception e) 
+    {
         echo "[ERROR]: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
         error "Failed to build and push ${project}"
