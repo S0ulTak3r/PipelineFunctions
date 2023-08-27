@@ -214,6 +214,33 @@ def retainLatestImageVersionOnly(String image) {
     }
 }
 
+def retainLatestImageVersionOnlyRemote(String image, String instanceip, String sshkey) {
+    try 
+    {
+        // Get all tags for the given image
+        def tags = sh(script: "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker images ${image} --format '{{.Tag}}''", returnStdout: true).trim().split('\n')
+        
+        
+        // Sort the tags. This assumes that the tags are semver compliant (or at least lexically sortable).
+        tags.sort()
+
+        // Keep the latest tag (last one in the sorted list)
+        def latestTag = tags[-1]
+
+        for (tag in tags) 
+        {
+            if (tag != latestTag) 
+            {
+                sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker rmi ${image}:${tag}'"
+            }
+        }
+    } catch (Exception e) {
+        echo "[ERROR]: Failed to retain only the latest image version for ${image}. Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to process image tags"
+    }
+}
+
 
 
 def pruneDockerImages() {
