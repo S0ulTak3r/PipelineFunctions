@@ -30,9 +30,9 @@ def packageHelmChart(String folder, String bucket, String bucketFolder)
         // Determine the type of change
         def changeType = 'patch'  // default to patch
 
-        if (chartChanges.contains("Chart.yaml")) {
+        if (hasRelevantChanges.contains("Chart.yaml")) {
             changeType = 'major'
-        } else if (chartChanges.contains("templates/")) {
+        } else if (hasRelevantChanges.contains("templates/")) {
             changeType = 'minor'
         }
 
