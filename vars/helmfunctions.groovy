@@ -43,7 +43,7 @@ def packageHelmChart(String folder, String bucket, String bucketFolder) {
     }
 }
 
-def deployToK8s(String k8context,String packagename,String approotfolder,String environment,String deploymentName) 
+def deployToK8s(String k8context,String packagename,String approotfolder,String environment,String deploymentName,String dockerTagFlask,String dockerTagDB) 
 {
     echo 'Making Sure I am in the right context...'
     k8functions.changeContext("${k8context}")
@@ -54,7 +54,7 @@ def deployToK8s(String k8context,String packagename,String approotfolder,String 
 
     echo "Deploying application using Helm..."
     def releaseName = "${deploymentName}"
-    sh "helm upgrade --install ${releaseName} ${env.LATEST_CHART_PATH} --set global.env=${environment}"
+    sh "helm upgrade --install ${releaseName} ${env.LATEST_CHART_PATH} --set global.env=${environment},flask.image.tag=${dockerTagFlask},mysql.image.tag=${dockerTagDB}"
 
 }
 
