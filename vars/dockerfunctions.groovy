@@ -97,33 +97,6 @@ def BuildAndPush(String project, String location)
     }
 }
 
-def BuildCheckAndPush(String project, String rootFolder, String applocation) {
-    try {
-        // Check for changes in the given location using git diff
-        def changedFiles = sh(script: "git diff --name-only HEAD~1..HEAD", returnStdout: true).trim().split("\n")
-
-        
-        // Check if any of the changed files are from the checkLocation
-        def hasRelevantChanges = changedFiles.any { it.startsWith(applocation) }
-
-        if (!hasRelevantChanges) {
-            echo "No changes detected in ${location}. Skipping build and push for ${project}."
-            return
-        }
-
-        dir("${rootFolder}/${applocation}") { // Using original location here
-            // Stage building
-            echo "Building ${project} Docker Image..."
-            sh "docker build -t ${project}:latest -t ${project}:1.${BUILD_NUMBER} ."
-            sh "docker push --all-tags ${project}"
-        }
-    } catch (Exception e) {
-        echo "[ERROR]: ${e.getMessage()}"
-        currentBuild.result = 'FAILURE'
-        error "Failed to build and push ${project}"
-    }
-}
-
 
 def BuildCheckAndPushV2(String project, String rootFolder, String applocation) {
     try {
